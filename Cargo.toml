@@ -1,5 +1,5 @@
 [package]
-name = "k-MST"
+name = "k_mst"
 version = "0.1.0"
 authors = ["Joaquín Medina Peralta joaquin.medina513@ciencias.unam.mx"]
 description = "Módulo para la resolución del problema k-MST por medio una heurística"
@@ -9,5 +9,5 @@ edition = "2024"
 [dependencies]
 dotenvy = "0.15"
 tempfile = "3.21.0"
-rand = { version = "0.9", features = ["std"] }
+rand = { version = "0.8", features = ["std"] }
 chrono = "0.4.42"
