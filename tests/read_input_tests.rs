@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use k_MST::utils::read_input::{InputError,ReadInput};
+    use k_mst::utils::read_input::{InputError,ReadInput};
     use std::fs::File;
     use std::io::Write;
     use tempfile::tempdir;
