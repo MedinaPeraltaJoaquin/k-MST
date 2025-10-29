@@ -28,7 +28,7 @@ impl std::error::Error for InputError {}
 
 pub struct ReadInput {
     pub args : Vec<String>,
-    pub graph : Vec<(char,char,f64)>,
+    pub graph : Vec<(String,String,f64)>,
     pub k_nodes : usize,
     pub seeds : Vec<i32>,
 }
@@ -41,7 +41,7 @@ impl ReadInput {
         Ok(ReadInput { args, graph: vec![], k_nodes: 0, seeds: vec![] })
     }
 
-    pub fn read_file(&mut self) -> Result<Vec<(char,char,f64)>, InputError> {
+    pub fn read_file(&mut self) -> Result<Vec<(String,String,f64)>, InputError> {
         if !self.graph.is_empty() {
             return Ok(self.graph.clone());
         }
@@ -67,11 +67,11 @@ impl ReadInput {
                     return Err(InputError::InvalidFormat("Cada línea debe tener 3 partes separadas por comas".to_string()));
                 }
 
-                let node1: char = match self.get_node(parts[0]) {
+                let node1: String = match self.get_node(parts[0]) {
                     Ok(n) => n,
                     Err(e) => return Err(e),
                 };
-                let node2: char = match self.get_node(parts[1]) {
+                let node2: String = match self.get_node(parts[1]) {
                     Ok(n) => n,
                     Err(e) => return Err(e),
                 };
@@ -205,11 +205,8 @@ impl ReadInput {
         self.args.iter().position(|arg| arg == flag)
     }
 
-    fn get_node(&self, s: &str) -> Result<char, InputError> {
+    fn get_node(&self, s: &str) -> Result<String, InputError> {
         let trimmed = s.trim();
-        if trimmed.chars().count() != 1 {
-            return Err(InputError::InvalidFormat("El nodo debe ser un solo caracter".to_string()));
-        }
-        Ok(trimmed.chars().next().unwrap())
+        Ok(trimmed.to_string())
     }
 }
