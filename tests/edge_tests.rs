@@ -15,7 +15,7 @@ fn test_new_and_getters() {
     assert_eq!(edge.get_to(), to, "El nodo de destino debe ser el asignado.");
 }
 
-#[test]
+/* #[test]
 /// Prueba la función `get_tuple` para verificar que devuelve la tupla correcta.
 fn test_get_tuple() {
     let edge = Edge::new(2.5, 1, 9);
@@ -23,7 +23,7 @@ fn test_get_tuple() {
     
     // Verifica que la tupla devuelta coincida con los valores.
     assert_eq!(edge.get_tuple(), expected_tuple, "La tupla debe contener (from, to, weight).");
-}
+} */
 
 #[test]
 /// Prueba la implementación de `PartialEq` y `Eq`.

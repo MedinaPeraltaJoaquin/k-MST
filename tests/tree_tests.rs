@@ -13,7 +13,7 @@ mod test {
     // Helper para crear un grafo de prueba.
     // Grafo simple de 4 nodos: A, B, C, D, E, F
     // Diámetro: 12.0 (e.g., A->D)
-    // Normalize: k = 2 -> 16.0
+    // Normalize: k = 2 -> 32.0
     fn setup_graph_for_tree() -> Graph {
         let edges = vec![
             ("A".to_string(), "B".to_string(), 3.0),
@@ -25,7 +25,7 @@ mod test {
             ("C".to_string(), "F".to_string(), 1.0),
             ("D".to_string(), "F".to_string(), 4.0),
         ];
-        Graph::new(edges)
+        Graph::new(edges,2)
     }
 
     // Helper para crear un árbol inicial de prueba {A, B, C}.
@@ -54,8 +54,8 @@ mod test {
 
         let normalize_factor = tree.get_normalize(&graph);
         
-        assert_eq!(normalize_factor, 16.0, "El factor de normalización debe ser la suma de los 2 costos ajustados más grandes (9.0 + 7.0 = 16.0).");
-        assert_eq!(tree.normalize, 16.0, "El factor de normalización debe estar cacheado.");
+        assert_eq!(normalize_factor, 16.0 * 2.0, "El factor de normalización debe ser la suma de los 2 costos ajustados más grandes (9.0 + 7.0) * 2 = 32.0).");
+        assert_eq!(tree.normalize, 16.0 * 2.0, "El factor de normalización debe estar cacheado.");
     }
 
     #[test]
@@ -65,13 +65,13 @@ mod test {
         let mut tree = setup_initial_tree(3); // Suma de pesos ajustados del MST: 8.0. k=3.
         
         // Normalización: 16.0
-        // Costo esperado: (Suma de pesos) / Normalización = 8.0 / 16.0 = 0.5
+        // Costo esperado: (Suma de pesos) / Normalización = 8.0 / 16.0 = 0.2
         let expected_cost = 8.0 / 16.0;
         let cost = tree.get_cost(&graph);
-        
-        assert!((cost - expected_cost).abs() < 1e-4, "El costo total del árbol debe ser 0.5.");
+
+        assert!((cost - expected_cost).abs() < 1e-4, "El costo total del árbol debe ser 0.25.");
         // Asegura que el normalizador se cacheó primero
-        assert!((tree.normalize - 16.0).abs() < 1e-4, "El factor de normalización debe estar cacheado en 16.0.");
+        assert!((tree.normalize - 32.0).abs() < 1e-4, "El factor de normalización debe estar cacheado en 32.0.");
         assert!((tree.total_cost - expected_cost).abs() < 1e-4, "El costo total debe estar cacheado.");
     }
 
@@ -94,7 +94,7 @@ mod test {
         assert!(neighbor_result.is_ok());
         let (_, cost, new_n, rem_n) = neighbor_result.unwrap();
 
-        let expected_cost = 12.0 / 16.0; 
+        let expected_cost = 12.0 / 32.0; 
         assert_eq!(*new_n, "D".to_string());
         assert_eq!(*rem_n, "A".to_string());
         assert!((*cost - expected_cost).abs() < 1e-4);

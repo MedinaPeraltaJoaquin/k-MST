@@ -4,6 +4,8 @@ mod test {
     // Importa las dependencias necesarias. Asume que 'tu_proyecto' es el nombre de tu crate.
     use k_mst::entity::graph::Graph;
     use k_mst::entity::tree::Tree;
+    use k_mst::utils::read_input::ReadInput;
+    use std::path::PathBuf;
 
     use std::{collections::HashMap};
     use rand::{SeedableRng, rngs::StdRng};
@@ -22,7 +24,7 @@ mod test {
             ("C".to_string(), "F".to_string(), 1.0),
             ("D".to_string(), "F".to_string(), 4.0),
         ];
-        Graph::new(edges)
+        Graph::new(edges, 2)
     }
 
     #[test]
@@ -103,5 +105,50 @@ mod test {
         
         // La única arista en el MST de {E, D} es E-D con costo ajustado 144.0.
         assert_eq!(tree.edges[0].2, 144.0, "El costo de la arista E-D debe ser el ajustado (144.0).");
+    }
+
+    #[test]
+    fn test_graph_instance_with_known_data() {
+        let mut file_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        file_path.push("tests");
+        file_path.push("graph.txt");
+
+        let file_str = file_path.to_str().expect("Fallo al convertir la ruta a string.");
+        
+        let args = vec![
+            "program".to_string(), 
+            "-p".to_string(), 
+            file_str.to_string(),
+            "-s".to_string(), 
+            "42".to_string(),
+            "-k".to_string(),
+            "40".to_string(),
+        ];
+        
+        let mut result = ReadInput::new(args).unwrap();
+        let vec = result.read_file().unwrap();
+        
+        let seed = result.get_seed().unwrap(); // Semilla fija
+        let mut rng = StdRng::seed_from_u64(seed[0] as u64);
+
+        let k: usize = result.get_k_nodes().unwrap(); // Obtener k
+        let graph = Graph::new(vec, k);
+        let diameter = graph.get_diameter();
+        let mut tree : Tree = graph.generate_tree(k, &mut rng);
+        let normalize = tree.get_normalize(&graph);
+
+        let expected_normalize = 24681.895;
+        let expected_diameter = 904.876;
+
+        println!("Cost {}", tree.get_cost(&graph));
+        println!("Is connected {}", tree.is_connected(&graph));
+
+        assert!((normalize - expected_normalize).abs() < 1e-3, 
+            "El normalizador no coincide. Esperado: {}, Obtenido: {}", 
+            expected_normalize, tree.normalize);
+            
+        assert!((diameter - expected_diameter).abs() < 1e-3, 
+            "El diámetro no coincide. Esperado: {}, Obtenido: {}", 
+            expected_diameter, graph.get_diameter());
     }
 }
