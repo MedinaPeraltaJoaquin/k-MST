@@ -34,8 +34,8 @@ mod tests {
             file_path.to_str().unwrap().to_string(),
         ];
         let mut ri = ReadInput::new(args).unwrap();
-        let graph = ri.read_file().unwrap();
-        assert_eq!(graph, vec![('1','2',3.2),('2','3',6.3),('1','3',0.23)]);
+        let graph: Vec<(String, String, f64)> = ri.read_file().unwrap();
+        assert_eq!(graph, vec![("1".to_string(),"2".to_string(),3.2),("2".to_string(),"3".to_string(),6.3),("1".to_string(),"3".to_string(),0.23)]);
     }
 
     #[test]
