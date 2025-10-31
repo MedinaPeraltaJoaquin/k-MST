@@ -38,10 +38,6 @@ impl Edge {
         self.to
     }
 
-    /// Obtiene una tupla con los índices de origen, destino y el peso.
-    pub fn get_tuple(&self) -> (usize, usize, f64) {
-        (self.from, self.to, self.weight)
-    }
 }
 
 /// Implementación de `Ord` (orden total) para `Edge`.

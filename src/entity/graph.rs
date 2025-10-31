@@ -8,16 +8,17 @@ use crate::entity::tree::Tree;
 use crate::entity::edge::Edge;
 
 /// Estructura auxiliar para calcular y ajustar los costos de las aristas.
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 struct Cost{
     /// Matriz de distancias más cortas (Floyd-Warshall), almacenada de forma plana.
     floyd_warshall_matrix : Vec<f64>,
+    diameter : f64
 }
 
 impl Cost {
     /// Crea una nueva instancia de `Cost`.
     pub fn new() -> Self {
-        Cost { floyd_warshall_matrix: vec![] }
+        Cost { floyd_warshall_matrix: vec![] , diameter : -1.0}
     }
 
     /// Calcula los costos ajustados de las aristas del grafo o ajusta los pesos de la matriz
@@ -25,7 +26,8 @@ impl Cost {
     pub fn calculate_edges(
         &mut self, 
         nodes: &HashMap<String, usize>, 
-        edges: &mut Vec<(f64, usize)>
+        edges: &mut Vec<(f64, usize)>,
+        k : usize
     ) -> Vec<(f64, usize)> {
         let floyd_warshall_matrix = self.get_floyd_warshall_matrix(nodes, edges);
         let diameter = self.get_diameter();
@@ -34,13 +36,21 @@ impl Cost {
             if edges[i].1 == 0 {
                 if floyd_warshall_matrix[i].is_infinite() {
                     // Si no hay camino, asigna un costo muy alto (diámetro^2).
-                    edges[i].0 = diameter * diameter;
+                    edges[i].0 = diameter * diameter * k as f64;
                     continue;
                 }
                 // Si hay camino, ajusta el costo: distancia_mas_corta * diametro.
-                edges[i].0 = floyd_warshall_matrix[i] * diameter;
+                edges[i].0 = floyd_warshall_matrix[i] * diameter * k as f64;
             }
         }
+        let mut max_edge = 0.0;
+        for edge in &mut *edges {
+            if edge.0 > max_edge {
+                max_edge = edge.0;
+            }
+        }
+
+        //println!("Max edge adjusted cost: {}", max_edge);
 
         edges.clone()
     }
@@ -56,19 +66,23 @@ impl Cost {
             return self.floyd_warshall_matrix.clone();
         }   
         
-        let size = nodes.len();
+        let n = nodes.len();
         // Inicializa la matriz de Floyd-Warshall.
         self.floyd_warshall_matrix = edges.iter().map(|&(cost, _)| cost).collect();
 
         // Implementación de Floyd-Warshall
-        for k in 0..size {
-            for i in 0..size {
-                for j in 0..size{
-                    let ik = self.floyd_warshall_matrix[i * size + k];
-                    let kj = self.floyd_warshall_matrix[k * size + j];
-                    let ij = self.floyd_warshall_matrix[i * size + j];
-                    if ik.is_finite() && kj.is_finite() && ik + kj < ij {
-                        self.floyd_warshall_matrix[i * size + j] = ik + kj;
+        for k in 0..n {
+            for i in 0..n {
+                for j in 0..n{
+                    if i == j {
+                        continue;
+                    }
+                    let ik = self.floyd_warshall_matrix[i * n + k];
+                    let kj = self.floyd_warshall_matrix[k * n + j];
+                    let ij = self.floyd_warshall_matrix[i * n + j];
+                    let new_cost = ik + kj;
+                    if new_cost < ij {
+                        self.floyd_warshall_matrix[i * n + j] = new_cost;
                     }   
                 }
             }
@@ -78,13 +92,17 @@ impl Cost {
     }
 
     /// Calcula el diámetro del grafo (la distancia más larga finita en la matriz).
-    fn get_diameter(&self) -> f64 {
+    fn get_diameter(&mut self) -> f64 {
+        if self.diameter != -1.0 {
+            return self.diameter;
+        }
         let mut diameter = 0.0;
         for &cost in &self.floyd_warshall_matrix {
             if cost.is_finite() && cost > diameter {
                 diameter = cost;
             }
         }
+        self.diameter = diameter.clone();
         diameter
     }
 }
@@ -97,12 +115,13 @@ pub struct Graph {
     /// Matriz de adyacencia/distancias. Almacenada como un vector plano (aplanado).
     /// Cada elemento es `(peso_o_distancia_ajustada, es_arista_original)`.
     edges : Vec<(f64,usize)>,
+    diameter : f64,
 }
 
 impl Graph {
     /// Crea una nueva instancia de `Graph` a partir de una lista 
     /// de aristas iniciales.
-    pub fn new(edges : Vec<(String,String,f64)>) -> Self {
+    pub fn new(edges : Vec<(String,String,f64)>, k : usize) -> Self {
         let mut nodes : HashMap<String, usize> = HashMap::new();
         let mut num_nodes : usize = 0;
 
@@ -122,6 +141,7 @@ impl Graph {
         // 2. Inicializar la matriz con INFINITY y 0.0 para auto-bucles.
         let mut weights: Vec<(f64, usize)> = 
                             vec![(f64::INFINITY, 0); size * size];
+
         for i in 0..size {
             weights[i * size + i] = (0.0, 1);
         }
@@ -136,9 +156,11 @@ impl Graph {
 
         // 4. Calcular y ajustar los pesos finales.
         let mut cost_calculator = Cost::new();
-        weights = cost_calculator.calculate_edges(&nodes, &mut weights);
+        weights = cost_calculator.calculate_edges(&nodes, &mut weights, k);
+        let diameter = cost_calculator.get_diameter();
 
-        Graph { nodes, edges: weights }
+
+        Graph { nodes, edges: weights , diameter}
     }
 
     /// Obtiene el número total de nodos.
@@ -146,6 +168,9 @@ impl Graph {
         self.nodes.len()
     }
 
+    pub fn get_diameter(&self) -> f64 {
+        self.diameter
+    }
     /// Obtiene una lista con los nombres de todos los nodos.
     pub fn get_nodes(&self) -> Vec<String> {
         let mut sorted_nodes : Vec<(String, usize)> = self.nodes
@@ -176,7 +201,8 @@ impl Graph {
         let mut nodes_tree = vec![(String::new(), false); k];
         // Selecciona 'k' nodos aleatorios.
         for i in 0..k {
-            let index = random.gen_range(0..nodes.len());
+            let size = nodes.len();
+            let index = random.gen_range(0..size);
             nodes_tree[i] = (nodes.remove(index).clone(), false);
         }
 
