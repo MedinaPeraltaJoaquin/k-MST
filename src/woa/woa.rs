@@ -19,7 +19,7 @@ impl WOA {
     pub fn new(size_population : usize, max_iteration : usize, lb : f64, ub : f64, seed: u64, k : usize, graph : &Graph) -> Self {
         let mut random = StdRng::seed_from_u64(seed);
         let mut population: Vec<Whale> = vec![];
-        for i in 0..size_population {
+        for _ in 0..size_population {
             let whale = Whale::new(graph, lb, ub, &mut random, k);
             population.push(whale);
         }

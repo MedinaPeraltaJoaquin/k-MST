@@ -77,7 +77,7 @@ pub fn main(){
         let idx_best_whale = woa.get_idx_best_whale();
         println!("Seed: {}: Best Cost: {}",seed,best_whale.get_cost(&graph));
         if !best_whale.get_tree_struct().is_connected(&graph) {
-            panic!("Warning: The best whale's tree is not connected or inconsistent!");
+            eprintln!("Warning: The best whale's tree is not connected or inconsistent!");
         }
         if verbose_mode {
             println!("Best Whale Index in Population: {}", idx_best_whale);

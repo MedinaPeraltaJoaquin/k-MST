@@ -1,7 +1,6 @@
 use core::f64;
 
 use rand::{rngs::StdRng, Rng};
-use svg::node;
 
 use crate::entity::{graph::Graph, tree::Tree};
 
@@ -78,9 +77,6 @@ impl Whale {
         self.position[index]
     } 
 
-    pub fn get_positions(&self) -> Vec<f64> {
-        self.position.clone()
-    }
 
     pub fn get_node(&self, index : usize) -> (String,bool) {
         self.nodes[index].clone()
