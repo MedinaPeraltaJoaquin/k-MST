@@ -144,6 +144,10 @@ impl Tree {
         }
 
         if self.nodes.contains(new_node) {
+            println!("El nodo nuevo ya está en el árbol.");
+            println!("Nuevo nodo: {}, Nodos actuales: {:?}", new_node, self.nodes);
+            println!("remove_node: {}", remove_node);
+            println!("in remove_node: {}", self.nodes.contains(remove_node));
             return Err(());
         }
 

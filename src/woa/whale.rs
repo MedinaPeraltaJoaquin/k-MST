@@ -93,8 +93,11 @@ impl Whale {
     pub fn get_index_node_in_tree(&self, random : &mut StdRng) -> usize {
         let mut index = random.gen_range(0..self.size);
         if self.nodes.iter().all(|(_, in_tree)| !in_tree) { return index; } 
-        while self.nodes[index].1 {
+        while !self.nodes[index].1 {
             index = random.gen_range(0..self.size);
+            if self.tree.nodes.contains(&self.nodes[index].0) {
+                break;
+            }
         }
         index
     }
@@ -130,10 +133,10 @@ impl Whale {
     pub fn get_index_node_nin_tree(&self, random : &mut StdRng) -> usize {
         let mut index = random.gen_range(0..self.size);
         if self.nodes.iter().all(|(_, in_tree)| *in_tree) { return index; } 
-        while !self.nodes[index].1 {
+        while self.nodes[index].1 {
             index = random.gen_range(0..self.size);
-            if self.tree.nodes.contains(&self.nodes[index].0) {
-                continue;
+            if !self.tree.nodes.contains(&self.nodes[index].0) {
+                break;
             }
         }
         index

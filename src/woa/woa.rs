@@ -154,7 +154,6 @@ impl WOA {
             // Clamping (Ajuste de límites)
             new_pos_remove = new_pos_remove.clamp(actual_whale.lb, actual_whale.ub);
             actual_whale.set_position(idx_remove_node, new_pos_remove);
-            actual_whale.set_node(idx_remove_node, false);
 
             // 2. Elegir y actualizar la posición del nodo a AÑADIR
             let mut idx_new_node = actual_whale.get_index_node_nin_tree(&mut self.random);
@@ -204,8 +203,11 @@ impl WOA {
             if new_cost < actual_whale.tree.get_cost(graph) {
                 actual_whale.tree.recover_solution();
                 actual_whale.cost = new_cost;
+                actual_whale.set_node(idx_remove_node, false);
             }else {
                 actual_whale.tree.clear_neighbour();
+                actual_whale.set_node(idx_remove_node, true);
+                actual_whale.set_node(idx_new_node, false);
             }
         }
     } 
