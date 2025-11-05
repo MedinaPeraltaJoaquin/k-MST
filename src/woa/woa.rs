@@ -196,7 +196,10 @@ impl WOA {
             // 3. Reconstruir/Actualizar el árbol (K-MST)
             let new_node = actual_whale.get_node(idx_new_node).0.clone();
             let remove_node = actual_whale.get_node(idx_remove_node).0.clone();
-            let (_,new_cost,_,_) = actual_whale.tree.get_neighbor(graph, &new_node, &remove_node).unwrap();
+            let (_,new_cost,_,_) = match actual_whale.tree.get_neighbor(graph, &new_node, &remove_node) {
+                Ok(element) => element,
+                Err(_) => panic!("Error al generar vecino en WOA."),
+            };
             let new_cost = new_cost.clone();
             if new_cost < actual_whale.tree.get_cost(graph) {
                 actual_whale.tree.recover_solution();

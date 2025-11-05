@@ -127,10 +127,7 @@ impl Tree {
     }
 
     /// Calcula un árbol vecino intercambiando un nodo existente por un `new_node`.
-    ///
-    /// La lógica de `retain` en `edges_new_tree` sugiere que solo se mantienen las aristas
-    /// conectadas al nodo que se va a remover, lo cual es inusual para Prim. 
-    /// **Nota:** Se mantiene la implementación original.
+
     pub fn get_neighbor(&mut self, 
         graph : &Graph, 
         new_node : &String,
