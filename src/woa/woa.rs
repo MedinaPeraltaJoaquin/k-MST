@@ -134,7 +134,8 @@ impl WOA {
 
 
             // 1. Elegir y actualizar la posición del nodo a REMOVER
-            let idx_remove_node = self.population[i].get_index_node_in_tree(&mut self.random);//self.population[i].get_index_node_in_other_tree(&mut self.random,&best_whale_ref.tree);
+            let idx_remove_node = self.population[i].get_index_node_in_tree(&mut self.random);
+                                        //self.population[i].get_index_node_in_other_tree(&mut self.random,&best_whale_ref.tree);
             let actual_pos_remove = self.population[i].get_position(idx_remove_node);
             let best_pos_remove = best_whale_ref.get_position(idx_remove_node);
             let random_pos_remove = random_pos_ref.get_position(idx_remove_node);
@@ -195,9 +196,14 @@ impl WOA {
             // 3. Reconstruir/Actualizar el árbol (K-MST)
             let new_node = actual_whale.get_node(idx_new_node).0.clone();
             let remove_node = actual_whale.get_node(idx_remove_node).0.clone();
-            let _ = actual_whale.tree.get_neighbor(graph, &new_node, &remove_node);
-            actual_whale.tree.recover_solution();
-            actual_whale.cost = actual_whale.tree.get_cost(graph);
+            let (_,new_cost,_,_) = actual_whale.tree.get_neighbor(graph, &new_node, &remove_node).unwrap();
+            let new_cost = new_cost.clone();
+            if new_cost < actual_whale.tree.get_cost(graph) {
+                actual_whale.tree.recover_solution();
+                actual_whale.cost = new_cost;
+            }else {
+                actual_whale.tree.clear_neighbour();
+            }
         }
     } 
 
