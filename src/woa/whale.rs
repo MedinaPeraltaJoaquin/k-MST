@@ -106,7 +106,7 @@ impl Whale {
         if difference_iter.clone().count() == 0 {
             return self.get_index_node_in_tree(random)
         }
-        
+
         let element: String = match difference_iter.cloned().choose(random) {
             Some(element) => element,
             None => {
@@ -132,6 +132,9 @@ impl Whale {
         if self.nodes.iter().all(|(_, in_tree)| *in_tree) { return index; } 
         while !self.nodes[index].1 {
             index = random.gen_range(0..self.size);
+            if self.tree.nodes.contains(&self.nodes[index].0) {
+                continue;
+            }
         }
         index
     }
