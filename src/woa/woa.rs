@@ -34,6 +34,7 @@ impl WOA {
                 best_whale = population[i].get_cost(graph);
             }
         }
+        println!("BW: ({},{})",idx_best_whale,best_whale);
 
         let convergence_curve = vec![f64::INFINITY;max_iteration];
         Self {
@@ -133,7 +134,7 @@ impl WOA {
 
 
             // 1. Elegir y actualizar la posición del nodo a REMOVER
-            let idx_remove_node = self.population[i].get_index_node_in_tree(&mut self.random);
+            let idx_remove_node = self.population[i].get_index_node_in_tree(&mut self.random);//self.population[i].get_index_node_in_other_tree(&mut self.random,&best_whale_ref.tree);
             let actual_pos_remove = self.population[i].get_position(idx_remove_node);
             let best_pos_remove = best_whale_ref.get_position(idx_remove_node);
             let random_pos_remove = random_pos_ref.get_position(idx_remove_node);
@@ -219,6 +220,7 @@ impl WOA {
             if new_value < current_best_cost {
                 self.idx_best_whale = i;
                 current_best_cost = new_value;
+                println!("BW: ({},{})", self.idx_best_whale, current_best_cost);
             } 
         }
     }

@@ -53,6 +53,7 @@ pub fn main(){
     };
 
     let graph = Graph::new(graph_vec,k_nodes);
+    println!("Diameter: {}",graph.get_diameter());
     
     let config = Config::from_env();
 

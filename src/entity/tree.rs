@@ -34,16 +34,6 @@ impl Tree {
         }
     }
 
-/*     /// Obtiene una lista de los nombres de los nodos en el árbol.
-    pub fn get_nodes(&self) -> Vec<String> {
-        self.nodes.clone().into_iter().collect()
-    }*/
-
-    /// Comprueba si un nodo específico está incluido en el árbol.
-    pub fn is_node_in_tree(&self, node : String) -> bool{
-        self.nodes.contains(&node)
-    }
-
     pub fn get_edges(&self) -> Vec<(String, String, f64)> {
         self.edges.clone()
     }

@@ -1,6 +1,6 @@
 use core::f64;
 
-use rand::{rngs::StdRng, Rng};
+use rand::{Rng, rngs::StdRng, seq::IteratorRandom};
 
 use crate::entity::{graph::Graph, tree::Tree};
 
@@ -97,6 +97,34 @@ impl Whale {
             index = random.gen_range(0..self.size);
         }
         index
+    }
+
+    pub fn get_index_node_in_other_tree(&self, random : &mut StdRng, other_tree : &Tree) -> usize {
+        let nodes_other_tree = &other_tree.nodes;
+        let nodes_self_tree = &self.tree.nodes;
+        let difference_iter = nodes_self_tree.difference(&nodes_other_tree);
+        if difference_iter.clone().count() == 0 {
+            return self.get_index_node_in_tree(random)
+        }
+        
+        let element: String = match difference_iter.cloned().choose(random) {
+            Some(element) => element,
+            None => {
+                return self.get_index_node_in_tree(random)
+            }
+        };
+
+        match self.nodes.binary_search_by_key(&element, |(node_name, _)| {
+            node_name.to_string()
+        }) {
+            Ok(index) => {
+                index
+            },
+            Err(_) => {
+                self.get_index_node_in_tree(random)
+            }
+        }
+    
     }
 
     pub fn get_index_node_nin_tree(&self, random : &mut StdRng) -> usize {

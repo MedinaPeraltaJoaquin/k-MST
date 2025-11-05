@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::f64;
-use rand::{Rng, rngs::StdRng};
 use std::collections::BinaryHeap;
 
 
@@ -173,14 +172,10 @@ impl Graph {
     }
     /// Obtiene una lista con los nombres de todos los nodos.
     pub fn get_nodes(&self) -> Vec<String> {
-        let mut sorted_nodes : Vec<(String, usize)> = self.nodes
-            .iter()
-            .map(|(k, v)| (k.clone(), *v))
-            .collect();
-            
-        sorted_nodes.sort_by_key(|(_,v)| *v);
+        let mut nodes: Vec<String> = self.nodes.keys().cloned().collect();
+        nodes.sort();
 
-        sorted_nodes.into_iter().map(|(k, _)| k).collect::<Vec<String>>()
+        nodes
     }
 
     /// Obtiene el peso/distancia ajustada de la arista entre dos nodos.
@@ -193,20 +188,6 @@ impl Graph {
     /// Obtiene el peso/distancia ajustada de la arista en un índice plano del vector de aristas.
     pub fn get_edge_index(&self, index: usize) -> &(f64,usize) {
         &self.edges[index]
-    }
-
-    /// Genera un sub-árbol inicial de `k` nodos seleccionados aleatoriamente.
-    pub fn generate_tree(&self, k: usize, random: &mut StdRng) -> Tree {
-        let mut nodes = self.get_nodes();
-        let mut nodes_tree = vec![(String::new(), false); k];
-        // Selecciona 'k' nodos aleatorios.
-        for i in 0..k {
-            let size = nodes.len();
-            let index = random.gen_range(0..size);
-            nodes_tree[i] = (nodes.remove(index).clone(), false);
-        }
-
-        self.generate_tree_by_nodes(k, &mut nodes_tree)
     }
 
     /// Genera un sub-árbol de `k` nodos a partir de una lista de nodos preseleccionados.
