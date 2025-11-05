@@ -37,11 +37,6 @@ Cargo.lock               # Opcional en librerías, pero en apps se suele version
 .DS_Store                # macOS
 Thumbs.db                # Windows
 
-# ======================================
-# sql
-/tests/sql/tsp.sql
-/data/
-
 # svg / reports
 /svg/
 /reports/
