@@ -40,4 +40,6 @@ Thumbs.db                # Windows
 # svg / reports
 /svg/
 /reports/
+/svg_reports/
+/edges_reports/
 
