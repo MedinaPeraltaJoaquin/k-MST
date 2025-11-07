@@ -1,12 +1,9 @@
 use core::f64;
+use std::f64::consts::PI;
 
 use rand::{Rng, rngs::StdRng, seq::IteratorRandom};
 
 use crate::entity::{graph::Graph, tree::Tree};
-
-fn calculate_value(x : f64) -> f64{
-    1.0 / (1.0 + (-10.0 * (x - 0.5)).exp())
-}
 
 #[derive(Debug,Clone)]
 pub struct Whale {
@@ -20,6 +17,13 @@ pub struct Whale {
 } 
 
 impl Whale {
+    pub fn calculate_value(x : f64) -> f64{
+        // T(v) = | (2/PI) * atan( (PI/2) * velocity ) |
+        let inner_val = (PI / 2.0) * x;
+        let probability = (2.0 / PI) * inner_val.atan();
+        probability.abs()
+    }
+
     pub fn new(graph : &Graph, lb : f64 , ub : f64, random : &mut StdRng, k : usize) -> Self {
         let size = graph.get_num_nodes();
         let mut position = vec![lb + random.gen_range(0.0..=1.0) * (ub -lb);size];
@@ -34,7 +38,7 @@ impl Whale {
             }
 
             let limit = random.gen_range(0.0..1.0);
-            nodes_tree_ref[i].1 = calculate_value(position[i]) > limit;
+            nodes_tree_ref[i].1 = Whale::calculate_value(position[i]) > limit;
             if nodes_tree_ref[i].1 {
                 nodes_tree.push((nodes_tree_ref[i].0.clone(), false));
                 k_element +=1;
