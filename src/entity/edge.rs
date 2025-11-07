@@ -49,9 +49,17 @@ impl Edge {
 /// ser la primera en extraerse.
 impl Ord for Edge {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        // Usa `other.weight.partial_cmp(&self.weight).unwrap()` para invertir
-        // la ordenación natural y priorizar pesos menores.
-        other.weight.partial_cmp(&self.weight).unwrap()
+        let weight_cmp = other.weight.partial_cmp(&self.weight).unwrap();
+        if weight_cmp != std::cmp::Ordering::Equal {
+            return weight_cmp;
+        }
+
+        let from_cmp = self.from.cmp(&other.from);
+        if from_cmp != std::cmp::Ordering::Equal {
+            return from_cmp;
+        }
+        
+        self.to.cmp(&other.to)
     }
 }
 

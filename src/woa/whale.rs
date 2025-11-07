@@ -110,9 +110,14 @@ impl Whale {
         let nodes_other_tree = &other_tree.nodes;
         let nodes_self_tree = &self.tree.nodes;
         let difference_iter = nodes_self_tree.difference(&nodes_other_tree);
-        if difference_iter.clone().count() == 0 {
+        let mut candidates: Vec<String> = difference_iter.cloned().collect();
+        candidates.sort(); 
+
+        if candidates.is_empty() {
             return self.get_index_node_in_tree(random)
-        }
+        };
+
+        let difference_iter = candidates.iter();
 
         let element: String = match difference_iter.cloned().choose(random) {
             Some(element) => element,
