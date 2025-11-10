@@ -43,3 +43,40 @@ Thumbs.db                # Windows
 /svg_reports/
 /edges_reports/
 
+# Archivos generados por LaTeX/pdfLaTeX/XeLaTeX
+*.aux
+*.log
+*.lof
+*.lot
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.out
+*.nav
+*.snm
+*.vrb
+*.dvi
+*.ps
+*.idx
+*.ilg
+*.ind
+*.nlo
+*.nls
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+
+# Directorios de compilación y archivos de TikZ/externalize
+*.temp.pdf
+_minted*
+*-figures/
+tikz-external/
+
+# Archivos de editor comunes (Opcional, pero recomendado)
+*.bak
+*.swp
+*~
+.vscode/
+.latexmkrc
