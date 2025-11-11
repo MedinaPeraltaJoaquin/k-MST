@@ -3,9 +3,11 @@ mod entity;
 mod woa;
 
 use std::{env, process::exit};
+use chrono::Local;
 
 use utils::read_input::ReadInput;
 use utils::config::Config;
+use utils::write_report::save_report;
 use utils::svg_plot::plot_convergence;
 use utils::svg_tree_plot::plot_tree;
 use entity::graph::Graph;
@@ -53,13 +55,17 @@ pub fn main(){
     };
 
     let graph = Graph::new(graph_vec,k_nodes);
+    println!("Diameter: {}",graph.get_diameter());
     
     let config = Config::from_env();
+
 
     let mut best_solution = std::f64::INFINITY;
     let mut best_seed = seeds[0];
     for seed in &seeds {
         println!("Running WOA with seed: {}", seed);
+        let now = Local::now();
+        let timestamp = now.format("%Y-%m-%d_%H-%M-%S-%3f").to_string();
 
         let mut woa = WOA::new(
             config.size_population,
@@ -84,18 +90,25 @@ pub fn main(){
             println!("Best Whale Cost: {}", best_whale.get_cost(&graph));
         }
         if svg_mode {
-            let filename_plot = format!("./svg/convergence_seed_{}.svg",seed);
+            let filename_plot = format!("convergence_seed_{}_{}.svg",seed,timestamp);
             match plot_convergence(&convergence, &filename_plot) {
                 Ok(_) => println!("Gráfica de convergencia guardada en: {}", filename_plot),
                 Err(e) => eprintln!("Error al guardar la gráfica de convergencia: {}", e),
             };
 
-            let filename_tree = format!("./svg/tree_seed_{}.svg",seed);
+            let filename_tree = format!("tree_seed_{}_{}.svg",seed,timestamp);
             match plot_tree(best_whale.get_tree(), &filename_tree) {
                 Ok(_) => println!("Árbol guardado en: {}", filename_tree),
                 Err(e) => eprintln!("Error al guardar el árbol: {}", e),
             };
         }
+
+        let filename_tree = format!("edges_{}_{}.txt",seed,timestamp);
+        match save_report(best_whale.get_tree().clone(), seed.clone(), filename_tree.clone()) {
+            Ok(_) => println!("Reporte del árbol guardado en: {}", filename_tree),
+            Err(e) => eprintln!("Error al guardar el reporte del árbol: {}", e),
+        };
+        
 
         if best_whale.get_cost(&graph) < best_solution {
             best_solution = best_whale.get_cost(&graph);

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::f64;
-use rand::{Rng, rngs::StdRng};
 use std::collections::BinaryHeap;
+use std::collections::HashSet;
 
 
 use crate::entity::tree::Tree;
@@ -173,14 +173,10 @@ impl Graph {
     }
     /// Obtiene una lista con los nombres de todos los nodos.
     pub fn get_nodes(&self) -> Vec<String> {
-        let mut sorted_nodes : Vec<(String, usize)> = self.nodes
-            .iter()
-            .map(|(k, v)| (k.clone(), *v))
-            .collect();
-            
-        sorted_nodes.sort_by_key(|(_,v)| *v);
+        let mut nodes: Vec<String> = self.nodes.keys().cloned().collect();
+        nodes.sort();
 
-        sorted_nodes.into_iter().map(|(k, _)| k).collect::<Vec<String>>()
+        nodes
     }
 
     /// Obtiene el peso/distancia ajustada de la arista entre dos nodos.
@@ -195,24 +191,10 @@ impl Graph {
         &self.edges[index]
     }
 
-    /// Genera un sub-árbol inicial de `k` nodos seleccionados aleatoriamente.
-    pub fn generate_tree(&self, k: usize, random: &mut StdRng) -> Tree {
-        let mut nodes = self.get_nodes();
-        let mut nodes_tree = vec![(String::new(), false); k];
-        // Selecciona 'k' nodos aleatorios.
-        for i in 0..k {
-            let size = nodes.len();
-            let index = random.gen_range(0..size);
-            nodes_tree[i] = (nodes.remove(index).clone(), false);
-        }
-
-        self.generate_tree_by_nodes(k, &mut nodes_tree)
-    }
-
     /// Genera un sub-árbol de `k` nodos a partir de una lista de nodos preseleccionados.
     pub fn generate_tree_by_nodes(&self, k: usize, nodes_tree : &mut Vec<(String,bool)>) -> Tree {
         let edges_tree = self.prim(nodes_tree, vec![], k);
-        let nodes_set = nodes_tree.iter().map(|(n, _)| n.clone()).collect();
+        let nodes_set: HashSet<String> = nodes_tree.iter().map(|(n, _)| n.clone()).collect();
         Tree::new(edges_tree, nodes_set, k)
     }
 
@@ -226,40 +208,17 @@ impl Graph {
     ) -> Vec<(String,String,f64)> {
         let mut mst_edges = edges.clone();
         let mut edge_heap: BinaryHeap<Edge> = BinaryHeap::new();
-        let k_nodes = size;
 
-        // --- INICIO: Lógica de Inicialización Corregida ---
-        let mut nodes_to_expand: Vec<usize> = Vec::new();
-        let mut any_node_visited = false;
-        for i in 0..k_nodes {
-            if nodes_tree[i].1 {
-                nodes_to_expand.push(i);
-                any_node_visited = true;
-            }
+        nodes_tree[0].1 = true;
+        let start_node = nodes_tree[0].0.clone();
+        for i in 1..size { 
+            let (weight, _) = self.get_edge(&start_node, &nodes_tree[i].0);
+            edge_heap.push(Edge::new(*weight, 0, i)); 
         }
 
-        if !any_node_visited && k_nodes > 0 {
-            nodes_tree[0].1 = true; 
-            nodes_to_expand.push(0);
-        }
+        let mut nodes_visited_count = 1;
 
-        // Inicializar el heap con todas las aristas salientes de los nodos ya visitados/en el árbol.
-        for &i in &nodes_to_expand {
-            let from_node_name = &nodes_tree[i].0;
-            
-            for j in 0..k_nodes {
-                if !nodes_tree[j].1 { // Si el nodo 'j' NO está en el árbol
-                    let to_node_name = &nodes_tree[j].0;
-                    let (weight, _) = self.get_edge(from_node_name, to_node_name);
-                    
-                    // Edge guarda: weight, índice_desde_en_nodes_tree (i), índice_a_en_nodes_tree (j)
-                    edge_heap.push(Edge::new(*weight, i, j));
-                }
-            }
-        }
-        // --- FIN: Lógica de Inicialización Corregida ---
-
-        while mst_edges.len() < size - 1 && !edge_heap.is_empty() {
+        while nodes_visited_count < size && !edge_heap.is_empty() {
             let edge = match edge_heap.pop() {
                 Some(e) => e,
                 None => break,
@@ -268,13 +227,13 @@ impl Graph {
             let from_node_tree_idx = edge.get_from();
             let to_node_tree_idx = edge.get_to();
 
-            // En Prim, solo nos importa si el nodo 'to' ya está en el MST
             if nodes_tree[to_node_tree_idx].1 {
                 continue;
             }
             
             // Marcar el nodo 'to' como visitado
             nodes_tree[to_node_tree_idx].1 = true;
+            nodes_visited_count += 1;
 
             // Añadir la arista al MST
             mst_edges.push(
@@ -293,7 +252,6 @@ impl Graph {
             for i in 0..nodes_tree.len() {
                 if !nodes_tree[i].1 {
                     let (weight, _) = self.get_edge(&new_node_tree, &nodes_tree[i].0);
-                    // Los índices de la arista del heap son los índices internos de `nodes_tree`
                     edge_heap.push(Edge::new(*weight, new_node_tree_idx, i));
                 }
             }

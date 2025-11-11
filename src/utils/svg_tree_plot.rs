@@ -4,6 +4,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use svg::node::element::{Circle, Line, Text};
 use svg::Document;
 use std::f64::consts::PI;
+use std::{fs::create_dir_all};
 
 /// Estructura auxiliar para almacenar la posición y propiedades calculadas de cada nodo
 struct NodePosition {
@@ -22,7 +23,7 @@ struct NodePosition {
 ///
 /// # Retorno
 /// Retorna `Result<(), std::io::Error>`.
-pub fn plot_tree(edges: Vec<(String, String, f64)>, filename: &str) -> Result<(), std::io::Error> {
+pub fn plot_tree(edges: Vec<(String, String, f64)>, filename: &str) -> Result<String, std::io::Error> {
 
     // --- 2. Análisis del Grafo y Grados ---
     let mut adj: HashMap<String, Vec<String>> = HashMap::new(); // Lista de adyacencia
@@ -43,7 +44,7 @@ pub fn plot_tree(edges: Vec<(String, String, f64)>, filename: &str) -> Result<()
     }
 
     if all_nodes.is_empty() {
-        return Ok(());
+        return Ok(filename.to_string());
     }
 
     // Encontrar el nodo central (el de mayor grado)
@@ -85,7 +86,7 @@ pub fn plot_tree(edges: Vec<(String, String, f64)>, filename: &str) -> Result<()
     // --- 1. Definición de Parámetros SVG y Layout ---
     let radius_step: f64 = 150.0;  // Separación radial entre capas de nodos
     let width: f64 = max_layer as f64 * radius_step * 2.0 + 400.0;
-    let height: f64 = 2000.0;
+    let height: f64 = max_layer as f64 * radius_step * 2.0 + 400.0;
     let center_x: f64 = width / 2.0;
     let center_y: f64 = height / 2.0;
     let node_r: f64 = 8.0;         // Radio del nodo para el dibujo
@@ -181,7 +182,9 @@ pub fn plot_tree(edges: Vec<(String, String, f64)>, filename: &str) -> Result<()
     }
 
     // --- 6. Guardar SVG ---
-    svg::save(filename, &document)?;
+    create_dir_all("./svg_reports")?;
+    let filepath = format!("./svg_reports/{}", filename);
+    svg::save(filepath, &document)?;
 
-    Ok(())
+    Ok(filename.to_string())
 }

@@ -3,6 +3,7 @@
 use svg::node::element::path::{Data};
 use svg::node::element::{Path, Rectangle, Text};
 use svg::Document;
+use std::{fs::create_dir_all};
 
 /// Genera un archivo SVG que visualiza la convergencia del algoritmo (Costo vs. Iteración).
 ///
@@ -14,9 +15,9 @@ use svg::Document;
 ///
 /// # Retorno
 /// Retorna `Result<(), std::io::Error>`.
-pub fn plot_convergence(costs: &[f64], filename: &str) -> Result<(), std::io::Error> {
+pub fn plot_convergence(costs: &[f64], filename: &str) -> Result<String, std::io::Error> {
     if costs.is_empty() {
-        return Ok(());
+        return Ok(filename.to_string());
     }
 
     // --- 1. Definición de Parámetros de Dibujo ---
@@ -145,7 +146,9 @@ pub fn plot_convergence(costs: &[f64], filename: &str) -> Result<(), std::io::Er
 
 
     // --- 5. Escritura en el Archivo ---
-    svg::save(filename, &document)?;
+    create_dir_all("./svg_reports")?;
+    let filepath = format!("./svg_reports/{}", filename);
+    svg::save(filepath, &document)?;
 
-    Ok(())
+    Ok(filename.to_string())
 }

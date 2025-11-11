@@ -1,0 +1,115 @@
+\begin{algorithm}
+\caption{Algoritmo de Optimización de Ballenas (Whale Optimization Algorithm - WOA)}
+\label{alg:woa}
+\begin{algorithmic}[1]
+    \State Inicializar la población de ballenas $X_i$ ($i = 1, 2, \dots, n$)
+    \State Calcular el fitness de cada agente de búsqueda
+    \State $X^*$ = el mejor agente de búsqueda
+    \While {$t < \text{número máximo de iteraciones}$}
+        \For {cada agente de búsqueda}
+            \State Actualizar $a$, $A$, $C$, $l$, y $p$
+            \If {$p < 0.5$}
+                \If {$|A| < 1$}
+                    \State Actualizar la posición del agente de búsqueda actual por la Ec. (1)
+                \Else
+                    \State Seleccionar un agente de búsqueda aleatorio ($X_{\text{rand}}$)
+                    \State Actualizar la posición del agente de búsqueda actual por la Ec. (3)
+                \EndIf
+            \Else
+                \State Actualizar la posición del agente de búsqueda actual por la Ec. (5)
+            \EndIf
+        \EndFor
+        \State Comprobar si algún agente de búsqueda sale del espacio de búsqueda y modificarlo
+        \State Calcular el fitness de cada agente de búsqueda
+        \State Actualizar $X^*$ si hay una mejor solución
+        \State $t \leftarrow t+1$
+    \EndWhile
+    \State \Return $X^*$
+\end{algorithmic}
+\end{algorithm}
+
+Donde las ecuaciones son:
+\begin{align}
+    X_t &= X^* - A \cdot D \\
+    D &= |C\cdot X^* - X_t|
+\end{align}
+
+\begin{align}
+    X &= X_{rand} - A \cdot D \\
+    D &= |C \cdot X_{rand} - X_t|  
+\end{align}
+
+\begin{align}
+    X_t &= D \cdot e^{bl} \cdot \cos{(2\pi l)} + X^* \\
+    D &= |X^* - X_t|
+\end{align}
+
+Con el valor de las constantes como:
+\begin{itemize}
+    \item{
+        $A = 2a \cdot r - a $
+    }
+    \item {
+        $C = 2 \cdot r$
+    }
+    \item{
+        $a \in [2,0]$ es un valor que va en decremento durante la cantidad de iteraciones.
+    }
+    \item {
+        $r \in [0,1]$ es un valor aleatorio.
+    }
+    \item{
+        $b$ es la constante definida de la forma logarítmica de la espiral.
+    }
+    \item{
+        $l \in [-1,1]$ es un valor aleatorio.
+    }
+\end{itemize}
+
+% Ecuación 20: Actualización binaria para BWOA 1 (Tangente Hiperbólica)
+\begin{equation}
+\label{eq:20}
+\vec{\vartheta}(i+1)=
+\begin{cases}
+0, & T(\vec{X}(i+1)) > R \\
+1, & \text{otherwise}
+\end{cases}
+\end{equation}
+
+% Ecuación 21: Función de Transformación Tangente Hiperbólica T
+\begin{equation}
+\label{eq:21}
+T(\vec{X}(i+1))=\tanh(\vec{X}(i+1))=\frac{\exp^{-\tau(\vec{X}(i+1))}-1}{\exp^{-\tau(\vec{X}(i+1))}+1}
+\end{equation}
+
+% Ecuación 22: Función de Transformación ArcTan (V-shaped) A
+\begin{equation}
+\label{eq:22}
+A(\vec{X}(i+1))=\arctan(\vec{X}(i+1))=\left|\frac{2}{\pi}\arctan\left(\frac{\pi}{2}\vec{X}(i+1)\right)\right|
+\end{equation}
+
+% Ecuación 23: Asignación binaria para BWOA 2 (ArcTan)
+\begin{equation}
+\label{eq:23}
+\vec{\vartheta}(i+1)=
+\begin{cases}
+0, & A(\vec{X}(i+1)) > R \\
+1, & \text{otherwise}
+\end{cases}
+\end{equation}
+
+% Ecuación 24: Función de Transformación Sigmoide Modificada S2 (S-shaped)
+\begin{equation}
+\label{eq:24}
+S_{2}\{\vec{X}(i+1)\}=\text{sigmoid}_{2}(\vec{X}(i+1))=\frac{1}{1+e^{-10\{(\vec{X}(i+1))-0.5\}}}
+\end{equation}
+
+% Ecuación 25: Actualización binaria para BWOA 3 (Sigmoide)
+\begin{equation}
+\label{eq:25}
+\vec{\vartheta}(i+1)=
+\begin{cases}
+0, & S_{2}(\vec{X}(i+1)) > R \\
+1, & \text{otherwise}
+\end{cases}
+\end{equation}

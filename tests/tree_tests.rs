@@ -105,8 +105,8 @@ mod test {
         assert!(recovered, "La recuperación debe ser exitosa.");
         
         // Verificar el nuevo estado del árbol
-        assert!(!tree.is_node_in_tree("A".to_string()), "El nodo 'A' debe haber sido removido.");
-        assert!(tree.is_node_in_tree("D".to_string()), "El nodo 'D' debe haber sido añadido.");
+        assert!(!tree.nodes.contains(&"A".to_string()), "El nodo 'A' debe haber sido removido.");
+        assert!(!tree.nodes.contains(&"A".to_string()), "El nodo 'D' debe haber sido añadido.");
         assert!((tree.total_cost - expected_cost).abs() < 1e-4, "El costo total debe actualizarse.");
         assert_eq!(tree.edges.len(), 2, "El nuevo árbol debe tener 2 aristas.");
     }

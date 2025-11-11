@@ -37,12 +37,46 @@ Cargo.lock               # Opcional en librerías, pero en apps se suele version
 .DS_Store                # macOS
 Thumbs.db                # Windows
 
-# ======================================
-# sql
-/tests/sql/tsp.sql
-/data/
-
 # svg / reports
 /svg/
 /reports/
+/svg_reports/
+/edges_reports/
 
+# Archivos generados por LaTeX/pdfLaTeX/XeLaTeX
+/Docs/*.aux
+/Docs/*.log
+/Docs/*.lof
+/Docs/*.lot
+/Docs/*.toc
+/Docs/*.fls
+/Docs/*.fdb_latexmk
+/Docs/*.synctex.gz
+/Docs/*.out
+/Docs/*.nav
+/Docs/*.snm
+/Docs/*.vrb
+/Docs/*.dvi
+/Docs/*.ps
+/Docs/*.idx
+/Docs/*.ilg
+/Docs/*.ind
+/Docs/*.nlo
+/Docs/*.nls
+/Docs/*.bbl
+/Docs/*.bcf
+/Docs/*.blg
+/Docs/*.run.xml
+
+# Directorios de compilación y archivos de TikZ/externalize
+/Docs/*.temp.pdf
+/Docs/_minted*
+/Docs/*-figures/
+/Docs/tikz-external/
+
+# Archivos de editor comunes (Opcional, pero recomendado)
+*.bak
+*.swp
+*~
+.vscode/
+.latexmkrc

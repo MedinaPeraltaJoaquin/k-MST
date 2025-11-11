@@ -8,7 +8,7 @@ mod test {
     use std::path::PathBuf;
 
     use std::{collections::HashMap};
-    use rand::{SeedableRng, rngs::StdRng};
+    use rand::{SeedableRng, rngs::StdRng, Rng};
 
     // Helper para crear un grafo de prueba.
     // Grafo simple de 4 nodos: A, B, C, D, E, F
@@ -25,6 +25,18 @@ mod test {
             ("D".to_string(), "F".to_string(), 4.0),
         ];
         Graph::new(edges, 2)
+    }
+
+    fn generate_tree(graph : &Graph, k : usize, random: &mut StdRng) -> Tree {
+        let mut nodes = graph.get_nodes();
+        let mut nodes_tree = vec![(String::new(), false); k];
+        for i in 0..k {
+            let size = nodes.len();
+            let index = random.gen_range(0..size);
+            nodes_tree[i] = (nodes.remove(index).clone(), false);
+        }
+
+        graph.generate_tree_by_nodes(k, &mut nodes_tree)
     }
 
     #[test]
@@ -98,7 +110,7 @@ mod test {
         // Usar una semilla fija para la reproducibilidad.
         let mut rng = StdRng::seed_from_u64(seed);
 
-        let tree: Tree = graph.generate_tree(k, &mut rng);
+        let tree: Tree = generate_tree(&graph,k, &mut rng);
 
         assert_eq!(tree.nodes.len(), k);
         assert_eq!(tree.edges.len(), 1);
@@ -134,7 +146,7 @@ mod test {
         let k: usize = result.get_k_nodes().unwrap(); // Obtener k
         let graph = Graph::new(vec, k);
         let diameter = graph.get_diameter();
-        let mut tree : Tree = graph.generate_tree(k, &mut rng);
+        let mut tree : Tree = generate_tree(&graph,k, &mut rng);
         let normalize = tree.get_normalize(&graph);
 
         let expected_normalize = 24681.895;

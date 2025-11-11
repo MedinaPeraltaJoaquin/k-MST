@@ -1,6 +1,6 @@
 use super::super::entity::graph::Graph;
 use super::whale::Whale;
-use rand::{rngs::StdRng, Rng, SeedableRng};
+use rand::{Rng, SeedableRng, rngs::StdRng};
 use std::f64::consts::PI;
 
 
@@ -34,6 +34,7 @@ impl WOA {
                 best_whale = population[i].get_cost(graph);
             }
         }
+        println!("BW: ({},{})",idx_best_whale,best_whale);
 
         let convergence_curve = vec![f64::INFINITY;max_iteration];
         Self {
@@ -42,7 +43,7 @@ impl WOA {
             idx_best_whale,
             max_iteration,
             convergence_curve,
-            random,
+            random: StdRng::seed_from_u64(seed)
         } 
     }
 
@@ -101,7 +102,7 @@ impl WOA {
             }
         } else {
             let d_leader = best_solution_pos - actual_whale_pos;
-            new_position = d_leader * (b * l).exp() * (2.0 * PI * l).cos() + actual_whale_pos;
+            new_position = d_leader * (b * l) * (2.0 * PI * l).cos() + actual_whale_pos;
         }
 
         new_position
@@ -133,7 +134,8 @@ impl WOA {
 
 
             // 1. Elegir y actualizar la posición del nodo a REMOVER
-            let idx_remove_node = self.population[i].get_index_node_in_tree(&mut self.random);
+            let idx_remove_node = //self.population[i].get_index_node_in_tree(&mut self.random);
+                                self.population[i].get_index_node_in_other_tree(&mut self.random,&best_whale_ref.tree);
             let actual_pos_remove = self.population[i].get_position(idx_remove_node);
             let best_pos_remove = best_whale_ref.get_position(idx_remove_node);
             let random_pos_remove = random_pos_ref.get_position(idx_remove_node);
@@ -152,7 +154,6 @@ impl WOA {
             // Clamping (Ajuste de límites)
             new_pos_remove = new_pos_remove.clamp(actual_whale.lb, actual_whale.ub);
             actual_whale.set_position(idx_remove_node, new_pos_remove);
-            actual_whale.set_node(idx_remove_node, false);
 
             // 2. Elegir y actualizar la posición del nodo a AÑADIR
             let mut idx_new_node = actual_whale.get_index_node_nin_tree(&mut self.random);
@@ -175,12 +176,12 @@ impl WOA {
                 
                 // Clamping (Ajuste de límites)
                 let clamped_position = new_position.clamp(actual_whale.lb, actual_whale.ub);
-                
-                // Decisión binaria (Sigmoid)
-                let sigmoid_value = 1.0 / (1.0 + (-clamped_position).exp()); 
-                let limit = 0.5; // Decisión binaria no estocástica (como en el original)
 
-                if sigmoid_value >= limit { 
+                // Decisión binaria
+                let binary_value = Whale::calculate_value(clamped_position);
+                let limit = self.random.gen_range(0.0..1.0);
+
+                if binary_value >= limit { 
                     // Aceptar nueva posición y nodo
                     actual_whale.set_position(idx_new_node, clamped_position);
                     actual_whale.set_node(idx_new_node, true);
@@ -194,9 +195,24 @@ impl WOA {
             // 3. Reconstruir/Actualizar el árbol (K-MST)
             let new_node = actual_whale.get_node(idx_new_node).0.clone();
             let remove_node = actual_whale.get_node(idx_remove_node).0.clone();
-            let _ = actual_whale.tree.get_neighbor(graph, &new_node, &remove_node);
-            actual_whale.tree.recover_solution();
-            actual_whale.cost = actual_whale.tree.get_cost(graph);
+            let (_,new_cost,_,_) = match actual_whale.tree.get_neighbor(graph, &new_node, &remove_node) {
+                Ok(element) => element,
+                Err(_) => panic!("Error al generar vecino en WOA."),
+            };
+            let new_cost = new_cost.clone();
+            if new_cost < actual_whale.tree.get_cost(graph) {
+                actual_whale.tree.recover_solution();
+                actual_whale.cost = new_cost;
+                actual_whale.set_node(idx_remove_node, false);
+            }else {
+                actual_whale.tree.clear_neighbour();
+                actual_whale.set_node(idx_remove_node, true);
+                actual_whale.set_node(idx_new_node, false);
+            }
+
+            if actual_whale.tree.nodes.len() != actual_whale.tree.k {
+                panic!("Error de consistencia: el número de nodos en el árbol no es k después de la actualización.");
+            }
         }
     } 
 
@@ -219,6 +235,7 @@ impl WOA {
             if new_value < current_best_cost {
                 self.idx_best_whale = i;
                 current_best_cost = new_value;
+                println!("BW: ({},{})", self.idx_best_whale, current_best_cost);
             } 
         }
     }

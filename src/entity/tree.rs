@@ -1,4 +1,5 @@
 use super::graph::Graph;
+//use super::super::utils::svg_tree_plot::plot_tree;
 use std::collections::{BinaryHeap, HashSet, HashMap,VecDeque};
 
 use ordered_float::OrderedFloat;
@@ -32,16 +33,6 @@ impl Tree {
             neighbors: (vec![], -1.0, String::new(), String::new()), 
             k 
         }
-    }
-
-/*     /// Obtiene una lista de los nombres de los nodos en el árbol.
-    pub fn get_nodes(&self) -> Vec<String> {
-        self.nodes.clone().into_iter().collect()
-    }*/
-
-    /// Comprueba si un nodo específico está incluido en el árbol.
-    pub fn is_node_in_tree(&self, node : String) -> bool{
-        self.nodes.contains(&node)
     }
 
     pub fn get_edges(&self) -> Vec<(String, String, f64)> {
@@ -137,10 +128,7 @@ impl Tree {
     }
 
     /// Calcula un árbol vecino intercambiando un nodo existente por un `new_node`.
-    ///
-    /// La lógica de `retain` en `edges_new_tree` sugiere que solo se mantienen las aristas
-    /// conectadas al nodo que se va a remover, lo cual es inusual para Prim. 
-    /// **Nota:** Se mantiene la implementación original.
+
     pub fn get_neighbor(&mut self, 
         graph : &Graph, 
         new_node : &String,
@@ -157,6 +145,10 @@ impl Tree {
         }
 
         if self.nodes.contains(new_node) {
+            println!("El nodo nuevo ya está en el árbol.");
+            println!("Nuevo nodo: {}, Nodos actuales: {:?}", new_node, self.nodes);
+            println!("remove_node: {}", remove_node);
+            println!("in remove_node: {}", self.nodes.contains(remove_node));
             return Err(());
         }
 
@@ -164,36 +156,17 @@ impl Tree {
         nodes_new_tree.insert(new_node.clone());
         nodes_new_tree.remove(remove_node);
 
-        // Se mantienen las aristas conectadas al nodo a remover.
-        let mut edges_new_tree = self.edges.clone();
-        edges_new_tree.retain(|(n1, n2 , _)| 
-            *n1 != remove_node.clone() && *n2 != remove_node.clone() );
-
-        // Guardamos nodos que esten en edges_new_tree como (n,1)
-        let mut nodes_in_edges : HashMap<String, bool> = HashMap::new();
-        for (n1, n2, _) in &edges_new_tree {
-            nodes_in_edges.insert(n1.clone(), true);
-            nodes_in_edges.insert(n2.clone(), true);
-        }
-
-        // Guardamos nodos restantes como (n,0)
-        for n in nodes_new_tree {
-            if !nodes_in_edges.contains_key(&n) {
-                nodes_in_edges.insert(n, false);
-            }
-        }
-
         // Prepara la entrada para `graph.prim`.
-        let mut nodes_prim_input = nodes_in_edges.into_iter().collect::<Vec<(String, bool)>>();
+        let mut nodes_prim_input = nodes_new_tree.iter()
+            .map(|n| (n.clone(), false))
+            .collect::<Vec<(String,bool)>>();
 
-        // Ejecuta Prim sobre el subconjunto de nodos con las aristas preservadas.
-        let new_tree = graph.prim(
-            &mut nodes_prim_input, 
-            edges_new_tree.clone(), 
-            self.k);
-        
-        let cost = self.get_cost_raw(graph, &new_tree);
-        self.neighbors = (new_tree, cost, new_node.clone(), remove_node.clone());
+        nodes_prim_input.sort_by(|(a,_) ,(b,_)| a.cmp(b));
+
+        // Ejecuta Prim sobre los nodos modificados para obtener el nuevo árbol.
+        let mut new_tree = graph.generate_tree_by_nodes(self.k, &mut nodes_prim_input);
+        let cost = new_tree.get_cost(graph);
+        self.neighbors = (new_tree.edges.clone(), cost, new_node.clone(), remove_node.clone());
 
         Ok(&self.neighbors)
     }
@@ -215,6 +188,13 @@ impl Tree {
         self.nodes.insert(self.neighbors.2.clone()); // Añade el nodo nuevo
         self.nodes.remove(&self.neighbors.3);       // Remueve el nodo viejo
         self.clear_neighbour(); // Limpia la caché.
+        if self.edges.len() != self.k -1 {
+            panic!("Error al recuperar solución: el número de aristas no es k-1 después de la recuperación.");
+        }
+
+        if self.nodes.len() != self.k {
+            panic!("Error al recuperar solución: el número de nodos no es k después de la recuperación.");
+        }
 
         true
     }
