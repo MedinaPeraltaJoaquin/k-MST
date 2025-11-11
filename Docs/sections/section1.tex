@@ -1,0 +1,141 @@
+\section*{Introducción}
+
+En este documento, veremos la manera de resolver un problema 
+\texttt{NP-duro}, el cual es el encontrar el árbol de tamaño $k$ 
+de peso mínimo, donde usando algoritmos tradicionales o variantes 
+de algunos conocidos, como \textit{Prism} o \textit{Kruskal}, no 
+será posible calcularlo en tiempo humanamente posible.
+
+De este modo, utilizaremos una heuristica de optimización 
+combinatoria que en este caso es una variante del algoritmo de 
+optimización por ballena (\textit{WOA} por sus siglas en ingles), 
+donde se usará para realizar búsqueda local y usando una 
+discretización inspirada en su versión binaria propuesta en 
+artículos posteriores al original, la cual utiliza una función 
+sigmoid para transformar valores $\mathbf{R} \longrightarrow (0,1)$ 
+y usando un limite podemos definir si un nodo está o no en el 
+árbol. 
+
+Por último, revisaremos la experimentación con tres instancias de 
+gráficas $|V(G)| \approx 1000$ y con $|E(G)| \approx 
+\{150000 , 40000, 2500\}$ respectivamente para calcular valores de 
+$k = 40$ y $k = 150$, donde veremos que se debe de ajustar los 
+parámetros para obtener soluciones factibles y en poco tiempo.
+
+\section*{Problema}
+
+En este trabajo, estaremos revisando el problema de gráficas del 
+árbol generador de peso mínimo de tamaño $k$, el cual consiste en 
+dado una gráfica $G=(V,E)$ con vértices y donde para cada $u,v 
+\in V$, $0 \leq E(u,v)$ y dado un entero positivo $k \leq |V|$ es 
+buscar un árbol $T$ con $k$ vértices de $G$ y donde el tamaño 
+$l(T) = \sum_{i,j \in V(T)} d_{i,j}$ sea el mínimo. 
+
+Dado que, debemos de escoger combinaciones de los vértices de 
+tamaño $k$ donde el orden no importa y no existen elementos 
+repetidos, por lo revisar cada uno para encontrar el de mayor 
+tamaño, donde nos costaría un tiempo aproximado de:
+\[
+\frac{|V|!}{(|V|-k)!k!}
+\]
+
+De esta manera, no se puede seleccionar una mejor solución en 
+tiempo polinomial y es dificultad de resolver este tipo de 
+problemas, aunque se puede intentar por medio de algoritmos greedy 
+o de programación dinámica.
+
+\section*{Heurística}
+En este ocasión, se decidió utilizar la heurística de \texttt{WAO}, 
+el cual busca inspiración como se menciona en 
+\cite{Mirjalili2016_WOA}, en el método de caza de la ballena 
+jorobada llamado red de burbujas donde se pudieron asociar dos 
+maniobras:
+\begin{itemize}
+    \item{
+        Durante la etapa denominada como \textit{espirales 
+        ascendentes}, las ballenas se zambullen a unos 12 metros 
+        de profundidad y luego comienzan a crear burbujas en forma 
+        de espiral alrededor de las presa mientras nadan hacia la 
+        superficie.
+    }
+    \item{
+        En la segunda maniobra llamada \textit{doble bucle}, 
+        constituye en tres etapas diferentes:  bucle coralino, 
+        golpe de cola y bucle de captura.
+    }
+\end{itemize}
+
+De esta manera, usando este comportamiento se modela la 
+optimización donde como se menciona en \cite{Mirjalili2016_WOA}, 
+consiste en crear un conjunto de soluciones aleatorias donde cada 
+agente (ballena) se caracteriza por un vector $X \in 
+\mathbf{R}^{n}$. Posteriormente se calcula la mejor solución del 
+conjunto de agentes y es el objetivo para todos los demás.
+
+En este punto, el algoritmo \texttt{WOA} consta en una fase de explotación
+y de explooración, con las siguientes características:
+\begin{enumerate}
+    \item{
+        La fase de exploración, las ballenas actuales buscan de manera aleatoria
+        presas usando la posición de otras ballenas alejadas, donde se modela con
+        la ecuación 3 y 4 del anexo.
+    }
+    \item{
+        En la fase de exploatción, las ballenas se acercan a la posición
+        de la presa que representa la mejor solucón encontrada hasta el momento,
+        donde usando las ecuaciones 1 y 2 son para acercarse a la mejor ballena.
+        Mientras que la ecuación 5 y 6 es para simular el ataca de las ballenas
+        hacia la presa usando una red de burbujas en forma de espiral.
+
+        Para este caso, se utiliza una probabilidad $p \in [0,1]$ para decidir si se
+        utiliza el acercamiento directo o el ataque en espiral.
+    }
+\end{enumerate}
+
+De esta manera, se puede observar que el algoritmo \texttt{WOA} está diseñado
+para problemas de optimización continua, por lo que se debe de adaptar
+para problemas discretos, como el \texttt{k-MST}.
+
+Para este caso, se decidió utilizar una versión binaria del \texttt{WOA},
+inspirada en \cite{Reddy2019_BinaryWhale}, donde se propone tres funciones para
+transformar los valores reales a binarios, siendo las siguientes funciones:
+\begin{itemize}
+    \item{
+        Una función por medio de una tangente hiperbólica (7) donde si el 
+        valor mayor a un umbral aleatorio se asigna un 1, en otro caso un 0 (8).
+    }
+    \item {
+        Una función utilizando una transformación de arcotangente (9) donde si el
+        valor mayor a un umbral aleatorio se asigna un 1, en otro caso un 0 (10).
+    }
+    \item{
+        Una función sigmoide (11) donde si el valor mayor a un umbral aleatorio se asigna
+        un 1, en otro caso un 0 (12).
+    }
+\end{itemize}
+
+En este caso, se decidió uutilizar la función de la transformación del arcotangente, para
+evitar saturación en los valores altos, lo cual podría suceder para la función
+sigmoide y tangente hiperbólica.
+
+Finalmente, en el anexo se puede observar el pseudocódigo del algoritmo \texttt{WOA},
+donde para cada valor de la posición de la ballena se utilizara la función para discretizar
+los valores y así utilizar la heuristica para una optimización combiinatoria discreta.
+
+\section*{Diseño de la solución}
+
+En este proyecto, se decidió utilizar el lenguaje de programación \texttt{Rust} para optimizar
+el rendimiento y manejo de memoria, ya que se trabajará con instancias grandes de gráficas. Además,
+se utilizará paquetes de \texttt{cargo.io} como:
+
+
+\subsection*{Tecnologías a utilizar}
+
+\subsection*{Implementación del problema}
+
+\section*{Experimentación}
+
+\section*{Resultados}
+
+\section*{Conclusión}
+
